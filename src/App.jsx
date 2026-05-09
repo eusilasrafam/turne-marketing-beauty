@@ -36,38 +36,250 @@ const downloadTicket = (student) => {
   const city = CITIES.find(c => c.name === student.city);
   const val = parseFloat(student.value) || 0;
   const valStr = val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
-  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0f172a"/><stop offset="100%" style="stop-color:#1e293b"/></linearGradient></defs>
-  <rect width="800" height="500" fill="url(#bg)" rx="20"/>
-  <rect x="16" y="16" width="768" height="468" rx="14" fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.3"/>
-  <circle cx="700" cy="80" r="140" fill="#7c3aed" opacity="0.04"/>
-  <circle cx="100" cy="420" r="100" fill="#a78bfa" opacity="0.03"/>
-  <text x="400" y="55" text-anchor="middle" font-family="system-ui" font-size="11" letter-spacing="5" fill="#a78bfa" opacity="0.7">INGRESSO OFICIAL</text>
-  <text x="400" y="100" text-anchor="middle" font-family="system-ui" font-size="36" font-weight="800" fill="#f8fafc" letter-spacing="3">TURNE</text>
-  <line x1="300" y1="105" x2="500" y2="105" stroke="#7c3aed" stroke-width="2"/>
-  <text x="400" y="132" text-anchor="middle" font-family="system-ui" font-size="16" letter-spacing="4" fill="#a78bfa">MARKETING &amp; BEAUTY</text>
-  <line x1="220" y1="150" x2="580" y2="150" stroke="#334155" stroke-width="0.5"/>
-  <text x="400" y="180" text-anchor="middle" font-family="system-ui" font-size="10" fill="#64748b" letter-spacing="3">PARTICIPANTE</text>
-  <text x="400" y="212" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="700" fill="#f1f5f9">${student.name.toUpperCase()}</text>
-  <text x="400" y="238" text-anchor="middle" font-family="system-ui" font-size="13" fill="#94a3b8">${student.phone}</text>
-  <rect x="250" y="260" width="300" height="56" rx="10" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
-  <text x="400" y="286" text-anchor="middle" font-family="system-ui" font-size="18" font-weight="700" fill="#a78bfa">${(city?.name || student.city).toUpperCase()}</text>
-  <text x="400" y="306" text-anchor="middle" font-family="system-ui" font-size="12" fill="#94a3b8">${city?.date || ""} de 2026</text>
-  <rect x="300" y="330" width="200" height="36" rx="8" fill="#0d3320" stroke="#166534" stroke-width="0.5"/>
-  <text x="400" y="354" text-anchor="middle" font-family="system-ui" font-size="16" font-weight="700" fill="#22c55e">${valStr}</text>
-  <line x1="220" y1="390" x2="580" y2="390" stroke="#334155" stroke-width="0.5"/>
-  <text x="400" y="418" text-anchor="middle" font-family="system-ui" font-size="9" fill="#64748b">ID: ${student.id.toUpperCase()}  ·  Cadastro: ${formatDate(student.registrationDate)}</text>
-  <text x="400" y="442" text-anchor="middle" font-family="system-ui" font-size="10" fill="#22c55e" font-weight="600">✓ PAGAMENTO CONFIRMADO</text>
-</svg>`;
-  const blob = new Blob([svg], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `ingresso-${student.name.replace(/\s+/g, "-").toLowerCase()}.svg`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  const logoUrl = `${window.location.origin}/logo-turne.png`;
+  const emitDate = new Date().toLocaleDateString("pt-BR");
+  const dayOfWeek = city?.dateShort
+    ? new Date(`2026-${city.dateShort.split("/")[1]}-${city.dateShort.split("/")[0]}`).toLocaleDateString("pt-BR", { weekday: "long" })
+    : "";
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ingresso — ${student.name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @page { size: 210mm 148mm landscape; margin: 0; }
+  html, body { width: 210mm; height: 148mm; background: #000; overflow: hidden; }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .no-print { display: none !important; }
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+
+  .ticket {
+    width: 210mm; height: 148mm;
+    background: #000;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Stub lateral */
+  .stub {
+    width: 50mm; height: 100%;
+    background: #000;
+    border-right: 2px dashed #333;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10mm 0; gap: 0; flex-shrink: 0;
+    position: relative;
+  }
+  .stub-notch {
+    position: absolute; width: 22px; height: 22px;
+    background: #fff; border-radius: 50%;
+    right: -11px;
+  }
+  .stub-notch.top { top: -4px; }
+  .stub-notch.bot { bottom: -4px; }
+  .stub-rot {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 12px;
+    height: 100%; justify-content: center;
+  }
+  .stub-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 4px;
+    color: #fff; line-height: 1;
+  }
+  .stub-sep { width: 1px; height: 18px; background: #333; }
+  .stub-sub {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 3px; color: #555;
+    text-transform: uppercase;
+  }
+  .stub-date {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; color: #888;
+  }
+  .stub-city {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 2px; color: #fff;
+  }
+
+  /* Corpo */
+  .body {
+    flex: 1; padding: 9mm 10mm 7mm 10mm;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .corner { position: absolute; width: 18px; height: 18px; }
+  .corner.tl { top: 7mm; left: 7mm; border-top: 1px solid #2a2a2a; border-left: 1px solid #2a2a2a; }
+  .corner.tr { top: 7mm; right: 7mm; border-top: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a; }
+  .corner.bl { bottom: 7mm; left: 7mm; border-bottom: 1px solid #2a2a2a; border-left: 1px solid #2a2a2a; }
+  .corner.br { bottom: 7mm; right: 7mm; border-bottom: 1px solid #2a2a2a; border-right: 1px solid #2a2a2a; }
+
+  /* Header */
+  .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5mm; }
+  .logo { height: 30px; filter: brightness(0) invert(1); display: block; }
+  .ticket-id { text-align: right; }
+  .ticket-id-label { font-size: 7px; font-weight: 600; letter-spacing: 3px; color: #444; text-transform: uppercase; display: block; margin-bottom: 3px; }
+  .ticket-id-val { font-family: 'Bebas Neue', monospace; font-size: 13px; letter-spacing: 2px; color: #fff; }
+
+  /* Divisor */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(to right, transparent, #2a2a2a, #fff, #2a2a2a, transparent);
+    margin-bottom: 4mm;
+  }
+
+  /* Participante */
+  .part-label {
+    font-size: 7px; font-weight: 600; letter-spacing: 3px;
+    color: #444; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+  }
+  .part-label::after { content: ''; flex: 1; height: 1px; background: #1a1a1a; }
+  .part-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px; letter-spacing: 2px;
+    color: #fff; line-height: 1; margin-bottom: 3px;
+    text-transform: uppercase;
+  }
+  .part-phone { font-size: 10px; color: #555; letter-spacing: 1px; }
+
+  /* Blocos info */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3mm; margin: 4mm 0; }
+  .info-block {
+    background: #0d0d0d; border: 1px solid #1f1f1f;
+    border-radius: 6px; padding: 3mm 4mm;
+  }
+  .info-block.hl { border-color: #333; }
+  .ib-label { font-size: 7px; font-weight: 600; letter-spacing: 2px; color: #444; text-transform: uppercase; margin-bottom: 3px; }
+  .ib-val { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1px; color: #fff; line-height: 1.1; }
+  .ib-sub { font-size: 8px; color: #555; margin-top: 2px; }
+
+  /* Footer */
+  .footer {
+    margin-top: auto; padding-top: 3mm;
+    border-top: 1px solid #1a1a1a;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-id { font-size: 7px; color: #333; font-family: monospace; letter-spacing: 1px; }
+  .footer-badge {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 8px; font-weight: 700; color: #fff;
+    letter-spacing: 2px; text-transform: uppercase;
+    border: 1px solid #333; padding: 3px 10px; border-radius: 3px;
+  }
+  .footer-date { font-size: 7px; color: #333; letter-spacing: 1px; }
+
+  /* Botão imprimir (não aparece no PDF) */
+  .print-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #111; padding: 12px 20px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    font-family: system-ui, sans-serif;
+  }
+  .btn-print {
+    background: #7c3aed; color: #fff; border: none;
+    padding: 10px 28px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .print-tip { font-size: 11px; color: #666; }
+</style>
+</head>
+<body>
+
+<div class="ticket">
+  <!-- STUB -->
+  <div class="stub">
+    <div class="stub-notch top"></div>
+    <div class="stub-notch bot"></div>
+    <div class="stub-rot">
+      <span class="stub-title">IMERSÃO</span>
+      <div class="stub-sep"></div>
+      <span class="stub-sub">Marketing & Beauty</span>
+      <div class="stub-sep"></div>
+      <span class="stub-date">${city?.dateShort || ""}</span>
+      <div class="stub-sep"></div>
+      <span class="stub-city">${(student.city || "").toUpperCase()}</span>
+    </div>
+  </div>
+
+  <!-- CORPO -->
+  <div class="body">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="top">
+      <img class="logo" src="${logoUrl}" alt="Logo Imersão" />
+      <div class="ticket-id">
+        <span class="ticket-id-label">Nº do ingresso</span>
+        <div class="ticket-id-val">${student.id.toUpperCase()}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="part-label">Participante</div>
+    <div class="part-name">${student.name}</div>
+    <div class="part-phone">${student.phone}</div>
+
+    <div class="info-grid">
+      <div class="info-block hl">
+        <div class="ib-label">Cidade</div>
+        <div class="ib-val">${student.city}</div>
+        <div class="ib-sub">Brasil · 2026</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Data</div>
+        <div class="ib-val">${city?.date || "—"}</div>
+        <div class="ib-sub">${dayOfWeek}</div>
+      </div>
+      <div class="info-block">
+        <div class="ib-label">Valor pago</div>
+        <div class="ib-val">${valStr}</div>
+        <div class="ib-sub">${student.paymentMethod}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-id">ID: ${student.id.toUpperCase()} · Cadastro: ${formatDate(student.registrationDate)}</div>
+      <div class="footer-badge">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+        PAGAMENTO CONFIRMADO
+      </div>
+      <div class="footer-date">Emitido em ${emitDate}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Barra de impressão (some no PDF) -->
+<div class="print-bar no-print">
+  <span class="print-tip">💡 No diálogo de impressão: margens = Nenhuma · ative "Gráficos de fundo"</span>
+  <button class="btn-print" onclick="window.print()">Salvar como PDF</button>
+</div>
+
+<script>
+  // Aguarda a logo carregar antes de disparar o print automaticamente
+  const img = document.querySelector('.logo');
+  const doPrint = () => setTimeout(() => window.print(), 400);
+  if (img.complete) doPrint();
+  else img.addEventListener('load', doPrint);
+</script>
+</body>
+</html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
 };
 
 const C = {
