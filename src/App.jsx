@@ -457,7 +457,7 @@ export default function App({ onLogout }) {
   const totalPaid = students.filter(s => s.paymentStatus === "Finalizado").length;
   const totalSales = students.reduce((sum, s) => sum + (parseFloat(s.value) || 0), 0);
   const totalPaidSales = students.filter(s => s.paymentStatus === "Finalizado").reduce((sum, s) => sum + (parseFloat(s.value) || 0), 0);
-  const totalPendingSales = totalSales - totalPaidSales;
+  const totalPendingSales = students.filter(s => s.paymentStatus !== "Finalizado").reduce((sum, s) => sum + (parseFloat(s.pendingValue) || 0), 0);
 
   const inp = {
     width: "100%", padding: "10px 14px", background: C.bg, border: `1px solid ${C.border}`,
