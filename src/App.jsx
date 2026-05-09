@@ -143,7 +143,7 @@ function StudentRow({ student, onEdit, onDelete, onTicket }) {
   );
 }
 
-export default function App() {
+export default function App({ onLogout }) {
   const [students, setStudents] = useState([]);
   const [tab, setTab] = useState("dashboard");
   const [editingId, setEditingId] = useState(null);
@@ -234,10 +234,29 @@ export default function App() {
             <div style={{ fontSize: "11px", color: C.textMut }}>Sistema de Cadastro de Alunos</div>
           </div>
         </div>
-        <div className="header-dates" style={{ fontSize: "12px", color: C.textMut }}>
-          <span>Parauapebas · 14/06</span>
-          <span>Marabá · 17/06</span>
-          <span>Teresina · 29/06</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="header-dates" style={{ fontSize: "12px", color: C.textMut }}>
+            <span>Parauapebas · 14/06</span>
+            <span>Marabá · 17/06</span>
+            <span>Teresina · 29/06</span>
+          </div>
+          {onLogout && (
+            <button onClick={onLogout} title="Sair" style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "6px 12px", borderRadius: "7px",
+              border: `1px solid ${C.border}`, background: "transparent",
+              color: C.textMut, cursor: "pointer", fontSize: "12px",
+              fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap",
+              transition: "color 0.15s, border-color 0.15s",
+            }}>
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sair
+            </button>
+          )}
         </div>
       </div>
 
