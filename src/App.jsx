@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const CITIES = [
   { name: "Parauapebas", date: "14 de Junho", dateShort: "14/06/2026", emoji: "🔥" },
@@ -144,7 +144,10 @@ function StudentRow({ student, onEdit, onDelete, onTicket }) {
 }
 
 export default function App({ onLogout }) {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("turne_students") || "[]"); }
+    catch { return []; }
+  });
   const [tab, setTab] = useState("dashboard");
   const [editingId, setEditingId] = useState(null);
   const [filterCity, setFilterCity] = useState("Todas");
@@ -155,6 +158,10 @@ export default function App({ onLogout }) {
     paymentMethod: PAYMENT_METHODS[0], paymentStatus: "Pendente",
     registrationDate: today(), paymentDate: "", value: "", pendingValue: "",
   });
+
+  useEffect(() => {
+    localStorage.setItem("turne_students", JSON.stringify(students));
+  }, [students]);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
