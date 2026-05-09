@@ -23,11 +23,6 @@ const formatCurrency = (v) => {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 };
 
-const parseCurrency = (v) => {
-  const clean = v.replace(/[^\d,]/g, "").replace(",", ".");
-  return clean;
-};
-
 const formatDate = (s) => {
   if (!s) return "—";
   const [y, m, d] = s.split("-");
@@ -99,50 +94,45 @@ const Ic = {
 
 function StudentRow({ student, onEdit, onDelete, onTicket }) {
   const isPaid = student.paymentStatus === "Finalizado";
-  const val = parseFloat(student.value) || 0;
   return (
-    <div style={{
-      display: "flex", alignItems: "center", padding: "14px 20px",
-      background: C.surface, borderRadius: "10px", border: `1px solid ${C.border}`,
-      gap: "14px", flexWrap: "wrap",
-    }}>
-      <div style={{ flex: "2", minWidth: "140px" }}>
+    <div className="student-row">
+      <div className="student-main">
         <div style={{ fontWeight: "600", color: C.text, fontSize: "14px" }}>{student.name}</div>
         <div style={{ fontSize: "12px", color: C.textMut, marginTop: "2px" }}>{student.phone}</div>
       </div>
-      <div style={{ flex: "1", minWidth: "90px" }}>
+      <div className="student-city">
         <div style={{ fontSize: "13px", color: C.priL, fontWeight: "500" }}>{student.city}</div>
         <div style={{ fontSize: "11px", color: C.textMut }}>{CITIES.find(c => c.name === student.city)?.date}</div>
       </div>
-      <div style={{ flex: "1", minWidth: "80px" }}>
+      <div className="student-value">
         <div style={{ fontSize: "14px", color: C.ok, fontWeight: "600" }}>{formatCurrency(student.value)}</div>
         <div style={{ fontSize: "11px", color: C.textMut }}>{student.paymentMethod}</div>
       </div>
-      <div style={{ flex: "1", minWidth: "100px" }}>
+      <div className="student-status">
         <span style={{
           display: "inline-flex", alignItems: "center", gap: "5px",
-          padding: "4px 12px", borderRadius: "6px", fontSize: "12px", fontWeight: "600",
+          padding: "4px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: "600",
           background: isPaid ? C.okBg : C.warnBg, color: isPaid ? C.ok : C.warn,
-          border: `1px solid ${isPaid ? C.okBo : C.warnBo}`,
+          border: `1px solid ${isPaid ? C.okBo : C.warnBo}`, whiteSpace: "nowrap",
         }}>{isPaid ? Ic.check : Ic.clock} {isPaid ? "Pago" : "Pendente"}</span>
       </div>
-      <div style={{ display: "flex", gap: "6px" }}>
+      <div className="student-actions">
         <button onClick={() => onEdit(student)} title="Editar" style={{
           width: "32px", height: "32px", borderRadius: "6px", border: `1px solid ${C.border}`,
           background: "transparent", color: C.textMut, cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
         }}>{Ic.edit}</button>
         {isPaid && (
           <button onClick={() => onTicket(student)} title="Gerar Ingresso" style={{
             width: "32px", height: "32px", borderRadius: "6px", border: `1px solid ${C.okBo}`,
             background: C.okBg, color: C.ok, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
           }}>{Ic.ticket}</button>
         )}
         <button onClick={() => onDelete(student.id)} title="Excluir" style={{
           width: "32px", height: "32px", borderRadius: "6px", border: `1px solid ${C.border}`,
           background: "transparent", color: C.textMut, cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
         }}>{Ic.trash}</button>
       </div>
     </div>
@@ -209,8 +199,8 @@ export default function App() {
   const navItems = [
     { id: "dashboard", icon: Ic.dash, label: "Dashboard" },
     { id: "cadastro", icon: Ic.add, label: "Cadastro" },
-    { id: "lista", icon: Ic.list, label: "Lista de Alunos", badge: students.length },
-    { id: "cidades", icon: Ic.city, label: "Por Cidade" },
+    { id: "lista", icon: Ic.list, label: "Alunos", badge: students.length },
+    { id: "cidades", icon: Ic.city, label: "Cidades" },
   ];
 
   return (
@@ -222,43 +212,45 @@ export default function App() {
           background: toast.type === "error" ? C.err : C.ok,
           color: "#fff", fontSize: "13px", fontWeight: "600",
           boxShadow: "0 4px 20px rgba(0,0,0,0.4)", animation: "toastIn 0.25s ease",
+          maxWidth: "calc(100vw - 32px)",
         }}>{toast.msg}</div>
       )}
 
       {/* Header */}
-      <div style={{
-        padding: "20px 24px", borderBottom: `1px solid ${C.border}`,
-        display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px",
-      }}>
+      <div className="app-header" style={{ borderBottom: `1px solid ${C.border}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{
-            width: "36px", height: "36px", background: `linear-gradient(135deg, ${C.pri}, ${C.priL})`,
+            width: "36px", height: "36px", flexShrink: 0,
+            background: `linear-gradient(135deg, ${C.pri}, ${C.priL})`,
             borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center",
             fontWeight: "800", fontSize: "16px", color: "#fff",
           }}>T</div>
           <div>
-            <div style={{ fontSize: "17px", fontWeight: "700", color: C.text, letterSpacing: "0.5px" }}>Turnê Marketing & Beauty</div>
-            <div style={{ fontSize: "12px", color: C.textMut }}>Sistema de Cadastro de Alunos</div>
+            <div style={{ fontSize: "16px", fontWeight: "700", color: C.text, letterSpacing: "0.5px" }}>Turnê Marketing & Beauty</div>
+            <div style={{ fontSize: "11px", color: C.textMut }}>Sistema de Cadastro de Alunos</div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: C.textMut }}>
-          <span>Parauapebas · 14/06</span><span>Marabá · 17/06</span><span>Teresina · 29/06</span>
+        <div className="header-dates" style={{ fontSize: "12px", color: C.textMut }}>
+          <span>Parauapebas · 14/06</span>
+          <span>Marabá · 17/06</span>
+          <span>Teresina · 29/06</span>
         </div>
       </div>
 
       {/* Nav */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "8px 12px", display: "flex", gap: "4px", overflowX: "auto" }}>
+      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "6px 8px", display: "flex", gap: "4px", overflowX: "auto" }}>
         {navItems.map(item => (
-          <button key={item.id} onClick={() => setTab(item.id)} style={{
-            display: "flex", alignItems: "center", gap: "8px", padding: "10px 16px",
+          <button key={item.id} onClick={() => setTab(item.id)} className="nav-btn" style={{
+            display: "flex", alignItems: "center", gap: "6px",
             background: tab === item.id ? C.priBg : "transparent",
             color: tab === item.id ? C.priL : C.textMut,
             border: tab === item.id ? `1px solid ${C.priBo}` : "1px solid transparent",
-            borderRadius: "8px", cursor: "pointer", fontSize: "13px",
+            borderRadius: "8px", cursor: "pointer",
             fontWeight: tab === item.id ? "600" : "400",
             fontFamily: "system-ui, -apple-system, sans-serif", whiteSpace: "nowrap",
           }}>
-            {item.icon}{item.label}
+            {item.icon}
+            <span className="nav-label">{item.label}</span>
             {item.badge > 0 && <span style={{
               background: C.pri, color: "#fff", fontSize: "11px", fontWeight: "700",
               padding: "1px 7px", borderRadius: "10px",
@@ -267,58 +259,57 @@ export default function App() {
         ))}
       </div>
 
-      <div style={{ padding: "24px", maxWidth: "1000px", margin: "0 auto" }}>
+      <div className="page-content">
 
         {/* DASHBOARD */}
         {tab === "dashboard" && <>
           {secTitle("Resumo geral")}
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" }}>
+          <div className="stats-grid" style={{ marginBottom: "16px" }}>
             {[
-              { l: "Total de inscritos", v: students.length, c: C.text, fmt: false },
-              { l: "Pagamentos finalizados", v: totalPaid, c: C.ok, fmt: false },
-              { l: "Saldos pendentes", v: students.length - totalPaid, c: C.warn, fmt: false },
+              { l: "Total de inscritos", v: students.length, c: C.text },
+              { l: "Pagamentos finalizados", v: totalPaid, c: C.ok },
+              { l: "Pendentes", v: students.length - totalPaid, c: C.warn },
             ].map((s, i) => (
-              <div key={i} style={{ flex: "1", minWidth: "180px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px 24px" }}>
+              <div key={i} className="stat-card" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
                 <div style={{ fontSize: "12px", color: C.textMut, fontWeight: "500", marginBottom: "8px" }}>{s.l}</div>
                 <div style={{ fontSize: "32px", fontWeight: "700", color: s.c, lineHeight: 1 }}>{s.v}</div>
               </div>
             ))}
           </div>
 
-          {/* Financial summary */}
           {secTitle("Financeiro")}
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "28px" }}>
-            <div style={{ flex: "1", minWidth: "180px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px 24px" }}>
+          <div className="stats-grid" style={{ marginBottom: "28px" }}>
+            <div className="stat-card" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <span style={{ color: C.priL }}>{Ic.dollar}</span>
                 <span style={{ fontSize: "12px", color: C.textMut, fontWeight: "500" }}>Total em vendas</span>
               </div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: C.text, lineHeight: 1 }}>
+              <div style={{ fontSize: "26px", fontWeight: "700", color: C.text, lineHeight: 1 }}>
                 {totalSales.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
-            <div style={{ flex: "1", minWidth: "180px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px 24px" }}>
+            <div className="stat-card" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: "12px", color: C.textMut, fontWeight: "500", marginBottom: "8px" }}>Receita confirmada</div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: C.ok, lineHeight: 1 }}>
+              <div style={{ fontSize: "26px", fontWeight: "700", color: C.ok, lineHeight: 1 }}>
                 {totalPaidSales.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
-            <div style={{ flex: "1", minWidth: "180px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px 24px" }}>
+            <div className="stat-card" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: "12px", color: C.textMut, fontWeight: "500", marginBottom: "8px" }}>A receber</div>
-              <div style={{ fontSize: "28px", fontWeight: "700", color: C.warn, lineHeight: 1 }}>
+              <div style={{ fontSize: "26px", fontWeight: "700", color: C.warn, lineHeight: 1 }}>
                 {totalPendingSales.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </div>
             </div>
           </div>
 
           {secTitle("Cidades do evento")}
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "28px" }}>
+          <div className="cities-grid" style={{ marginBottom: "28px" }}>
             {CITIES.map(city => {
               const cs = students.filter(s => s.city === city.name);
               const pd = cs.filter(s => s.paymentStatus === "Finalizado").length;
               const cityTotal = cs.reduce((sum, s) => sum + (parseFloat(s.value) || 0), 0);
               return (
-                <div key={city.name} style={{ flex: "1", minWidth: "240px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px 24px" }}>
+                <div key={city.name} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
                     <div>
                       <div style={{ fontSize: "16px", fontWeight: "600", color: C.text }}>{city.name}</div>
@@ -343,7 +334,7 @@ export default function App() {
           </div>
 
           {students.length === 0 && (
-            <div style={{ textAlign: "center", padding: "60px 24px", background: C.surface, borderRadius: "12px", border: `1px dashed ${C.border}` }}>
+            <div style={{ textAlign: "center", padding: "48px 24px", background: C.surface, borderRadius: "12px", border: `1px dashed ${C.border}` }}>
               <div style={{ width: "56px", height: "56px", margin: "0 auto 16px", background: C.priBg, borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", color: C.priL }}>{Ic.add}</div>
               <div style={{ color: C.textSec, fontSize: "15px", marginBottom: "16px" }}>Nenhum aluno cadastrado ainda</div>
               <button onClick={() => setTab("cadastro")} style={{ padding: "10px 24px", background: C.pri, color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "13px", fontWeight: "600", fontFamily: "system-ui, sans-serif" }}>Cadastrar primeiro aluno</button>
@@ -363,9 +354,9 @@ export default function App() {
         {/* CADASTRO */}
         {tab === "cadastro" && <>
           {secTitle(editingId ? "Editar cadastro" : "Novo cadastro")}
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "28px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
-              <div style={{ gridColumn: "1 / -1" }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "20px" }}>
+            <div className="form-grid">
+              <div className="form-full">
                 <label style={lbl}>Nome completo *</label>
                 <input style={inp} placeholder="Nome do aluno" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
               </div>
@@ -406,13 +397,13 @@ export default function App() {
                 <input type="date" style={inp} value={form.paymentDate} onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))} />
               </div>
             </div>
-            <div style={{ display: "flex", gap: "10px", marginTop: "24px", paddingTop: "20px", borderTop: `1px solid ${C.border}` }}>
+            <div className="form-actions" style={{ borderTop: `1px solid ${C.border}` }}>
               <button onClick={handleSubmit} style={{
-                flex: "1", padding: "12px", background: C.pri, color: "#fff", border: "none",
+                flex: "1", padding: "13px", background: C.pri, color: "#fff", border: "none",
                 borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: "600", fontFamily: "system-ui, sans-serif",
               }}>{editingId ? "Salvar alterações" : "Cadastrar aluno"}</button>
               {editingId && <button onClick={resetForm} style={{
-                padding: "12px 20px", background: "transparent", border: `1px solid ${C.border}`,
+                padding: "13px 20px", background: "transparent", border: `1px solid ${C.border}`,
                 borderRadius: "8px", color: C.textSec, cursor: "pointer", fontSize: "14px", fontFamily: "system-ui, sans-serif",
               }}>Cancelar</button>}
             </div>
@@ -422,20 +413,20 @@ export default function App() {
         {/* LISTA */}
         {tab === "lista" && <>
           {secTitle("Lista de alunos")}
-          <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: "1", minWidth: "200px", maxWidth: "320px" }}>
+          <div className="list-filters">
+            <div style={{ position: "relative", flex: "1", minWidth: "0" }}>
               <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: C.textMut }}>{Ic.search}</span>
-              <input style={{ ...inp, paddingLeft: "36px" }} placeholder="Buscar por nome ou telefone..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+              <input style={{ ...inp, paddingLeft: "36px" }} placeholder="Buscar nome ou telefone..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <select style={{ ...inp, maxWidth: "200px", cursor: "pointer" }} value={filterCity} onChange={e => setFilterCity(e.target.value)}>
-              <option value="Todas" style={{ background: C.surface }}>Todas as cidades</option>
+            <select style={{ ...inp, width: "auto", minWidth: "140px", cursor: "pointer", flexShrink: 0 }} value={filterCity} onChange={e => setFilterCity(e.target.value)}>
+              <option value="Todas" style={{ background: C.surface }}>Todas</option>
               {CITIES.map(c => <option key={c.name} value={c.name} style={{ background: C.surface }}>{c.name}</option>)}
             </select>
-            <div style={{ marginLeft: "auto", fontSize: "12px", color: C.textMut }}>{filtered.length} resultado(s)</div>
+            <div style={{ fontSize: "12px", color: C.textMut, whiteSpace: "nowrap", flexShrink: 0 }}>{filtered.length} resultado(s)</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             {filtered.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "48px", background: C.surface, borderRadius: "12px", border: `1px solid ${C.border}`, color: C.textMut, fontSize: "14px" }}>
+              <div style={{ textAlign: "center", padding: "48px 16px", background: C.surface, borderRadius: "12px", border: `1px solid ${C.border}`, color: C.textMut, fontSize: "14px" }}>
                 {students.length === 0 ? "Nenhum aluno cadastrado." : "Nenhum resultado encontrado."}
               </div>
             ) : filtered.map(s => (
@@ -450,10 +441,7 @@ export default function App() {
           const cityTotal = cs.reduce((sum, s) => sum + (parseFloat(s.value) || 0), 0);
           return (
             <div key={city.name} style={{ marginBottom: "32px" }}>
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                marginBottom: "12px", paddingBottom: "12px", borderBottom: `1px solid ${C.border}`,
-              }}>
+              <div className="city-header" style={{ borderBottom: `1px solid ${C.border}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <span style={{ fontSize: "22px" }}>{city.emoji}</span>
                   <div>
@@ -461,18 +449,18 @@ export default function App() {
                     <span style={{ fontSize: "13px", color: C.priL, marginLeft: "10px" }}>{city.date} de 2026</span>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "13px", color: C.ok, fontWeight: "600" }}>
                     {cityTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                   </span>
                   <span style={{
-                    padding: "4px 14px", background: C.priBg, border: `1px solid ${C.priBo}`,
+                    padding: "4px 12px", background: C.priBg, border: `1px solid ${C.priBo}`,
                     borderRadius: "6px", fontSize: "12px", fontWeight: "600", color: C.priL,
                   }}>{cs.length} inscrito(s)</span>
                 </div>
               </div>
               {cs.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "32px", background: C.surface, borderRadius: "10px", border: `1px solid ${C.border}`, color: C.textMut, fontSize: "13px" }}>
+                <div style={{ textAlign: "center", padding: "32px 16px", background: C.surface, borderRadius: "10px", border: `1px solid ${C.border}`, color: C.textMut, fontSize: "13px" }}>
                   Nenhum inscrito para esta cidade.
                 </div>
               ) : (
@@ -492,6 +480,129 @@ export default function App() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 3px; }
         * { box-sizing: border-box; margin: 0; }
+
+        /* Layout base */
+        .app-header {
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .header-dates {
+          display: flex;
+          gap: 14px;
+        }
+        .nav-btn {
+          padding: 9px 14px;
+          font-size: 13px;
+        }
+        .nav-label { display: inline; }
+        .page-content {
+          padding: 20px;
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+        .stat-card {
+          border-radius: 12px;
+          padding: 18px 20px;
+        }
+        .cities-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+        }
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .form-full { grid-column: 1 / -1; }
+        .form-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
+          padding-top: 18px;
+        }
+        .list-filters {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 14px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+        .city-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          padding-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        /* Student row */
+        .student-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 1fr auto;
+          align-items: center;
+          padding: 14px 16px;
+          background: ${C.surface};
+          border-radius: 10px;
+          border: 1px solid ${C.border};
+          gap: 12px;
+        }
+        .student-actions {
+          display: flex;
+          gap: 6px;
+          justify-content: flex-end;
+        }
+
+        /* Tablet: <= 768px */
+        @media (max-width: 768px) {
+          .app-header { padding: 14px 16px; }
+          .header-dates { gap: 10px; font-size: 11px; }
+          .page-content { padding: 16px; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .cities-grid { grid-template-columns: 1fr; }
+          .student-row {
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto auto auto;
+          }
+          .student-main { grid-column: 1; grid-row: 1; }
+          .student-actions { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+          .student-city { grid-column: 1; grid-row: 2; }
+          .student-value { grid-column: 1; grid-row: 2; display: none; }
+          .student-status { grid-column: 1; grid-row: 3; }
+        }
+
+        /* Mobile: <= 480px */
+        @media (max-width: 480px) {
+          .header-dates { display: none; }
+          .nav-btn { padding: 8px 10px; font-size: 12px; }
+          .page-content { padding: 12px; }
+          .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+          .stat-card { padding: 14px 16px; }
+          .stat-card div:last-child { font-size: 26px !important; }
+          .form-grid { grid-template-columns: 1fr; gap: 14px; }
+          .form-full { grid-column: 1; }
+          .list-filters { gap: 8px; }
+          .city-header { flex-direction: column; align-items: flex-start; }
+          .student-row { padding: 12px; gap: 8px; }
+        }
+
+        /* Very small: <= 360px */
+        @media (max-width: 360px) {
+          .nav-label { display: none; }
+          .nav-btn { padding: 8px; }
+          .stats-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
     </div>
   );
