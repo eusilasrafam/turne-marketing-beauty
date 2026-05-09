@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "./supabase.js";
 
 const CITIES = [
   { name: "Parauapebas", date: "14 de Junho", dateShort: "14/06/2026", emoji: "🔥" },
@@ -143,11 +144,35 @@ function StudentRow({ student, onEdit, onDelete, onTicket }) {
   );
 }
 
+const studentToDb = (s) => ({
+  id: s.id,
+  name: s.name,
+  phone: s.phone,
+  city: s.city,
+  payment_method: s.paymentMethod,
+  payment_status: s.paymentStatus,
+  registration_date: s.registrationDate,
+  payment_date: s.paymentDate,
+  value: s.value,
+  pending_value: s.pendingValue,
+});
+
+const dbToStudent = (r) => ({
+  id: r.id,
+  name: r.name,
+  phone: r.phone,
+  city: r.city,
+  paymentMethod: r.payment_method,
+  paymentStatus: r.payment_status,
+  registrationDate: r.registration_date,
+  paymentDate: r.payment_date,
+  value: r.value,
+  pendingValue: r.pending_value,
+});
+
 export default function App({ onLogout }) {
-  const [students, setStudents] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("turne_students") || "[]"); }
-    catch { return []; }
-  });
+  const [students, setStudents] = useState([]);
+  const [dbLoading, setDbLoading] = useState(true);
   const [tab, setTab] = useState("dashboard");
   const [editingId, setEditingId] = useState(null);
   const [filterCity, setFilterCity] = useState("Todas");
@@ -160,8 +185,15 @@ export default function App({ onLogout }) {
   });
 
   useEffect(() => {
-    localStorage.setItem("turne_students", JSON.stringify(students));
-  }, [students]);
+    supabase
+      .from("turne_students")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data) setStudents(data.map(dbToStudent));
+        setDbLoading(false);
+      });
+  }, []);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -173,20 +205,36 @@ export default function App({ onLogout }) {
     setEditingId(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name.trim() || !form.phone.trim()) { showToast("Preencha nome e telefone!", "error"); return; }
     if (editingId) {
+      const { error } = await supabase
+        .from("turne_students")
+        .update(studentToDb(form))
+        .eq("id", editingId);
+      if (error) { showToast("Erro ao salvar.", "error"); return; }
       setStudents(p => p.map(s => s.id === editingId ? { ...form, id: editingId } : s));
       showToast("Cadastro atualizado!");
     } else {
-      setStudents(p => [...p, { ...form, id: generateId() }]);
+      const newStudent = { ...form, id: generateId() };
+      const { error } = await supabase
+        .from("turne_students")
+        .insert(studentToDb(newStudent));
+      if (error) { showToast("Erro ao cadastrar.", "error"); return; }
+      setStudents(p => [...p, newStudent]);
       showToast("Aluno cadastrado!");
     }
     resetForm();
   };
 
   const handleEdit = (s) => { setForm({ ...s }); setEditingId(s.id); setTab("cadastro"); };
-  const handleDelete = (id) => { if (window.confirm("Excluir este cadastro?")) { setStudents(p => p.filter(s => s.id !== id)); showToast("Removido.", "error"); } };
+  const handleDelete = async (id) => {
+    if (!window.confirm("Excluir este cadastro?")) return;
+    const { error } = await supabase.from("turne_students").delete().eq("id", id);
+    if (error) { showToast("Erro ao excluir.", "error"); return; }
+    setStudents(p => p.filter(s => s.id !== id));
+    showToast("Removido.", "error");
+  };
 
   const filtered = students.filter(s => {
     const mc = filterCity === "Todas" || s.city === filterCity;
@@ -213,6 +261,14 @@ export default function App({ onLogout }) {
     { id: "lista", icon: Ic.list, label: "Alunos", badge: students.length },
     { id: "cidades", icon: Ic.city, label: "Cidades" },
   ];
+
+  if (dbLoading) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ width: 40, height: 40, border: `3px solid ${C.border}`, borderTopColor: C.pri, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <div style={{ fontSize: 13, color: C.textMut }}>Carregando dados...</div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "system-ui, -apple-system, sans-serif" }}>
