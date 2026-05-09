@@ -106,7 +106,11 @@ function StudentRow({ student, onEdit, onDelete, onTicket }) {
       </div>
       <div className="student-value">
         <div style={{ fontSize: "14px", color: C.ok, fontWeight: "600" }}>{formatCurrency(student.value)}</div>
-        <div style={{ fontSize: "11px", color: C.textMut }}>{student.paymentMethod}</div>
+        {!isPaid && student.pendingValue ? (
+          <div style={{ fontSize: "11px", color: C.warn, fontWeight: "500" }}>saldo: {formatCurrency(student.pendingValue)}</div>
+        ) : (
+          <div style={{ fontSize: "11px", color: C.textMut }}>{student.paymentMethod}</div>
+        )}
       </div>
       <div className="student-status">
         <span style={{
@@ -149,7 +153,7 @@ export default function App() {
   const [form, setForm] = useState({
     name: "", phone: "", city: CITIES[0].name,
     paymentMethod: PAYMENT_METHODS[0], paymentStatus: "Pendente",
-    registrationDate: today(), paymentDate: "", value: "",
+    registrationDate: today(), paymentDate: "", value: "", pendingValue: "",
   });
 
   const showToast = (msg, type = "success") => {
@@ -158,7 +162,7 @@ export default function App() {
   };
 
   const resetForm = () => {
-    setForm({ name: "", phone: "", city: CITIES[0].name, paymentMethod: PAYMENT_METHODS[0], paymentStatus: "Pendente", registrationDate: today(), paymentDate: "", value: "" });
+    setForm({ name: "", phone: "", city: CITIES[0].name, paymentMethod: PAYMENT_METHODS[0], paymentStatus: "Pendente", registrationDate: today(), paymentDate: "", value: "", pendingValue: "" });
     setEditingId(null);
   };
 
@@ -388,6 +392,15 @@ export default function App() {
                   <option value="Finalizado" style={{ background: C.surface }}>Pagamento finalizado</option>
                 </select>
               </div>
+              {form.paymentStatus === "Pendente" && (
+                <div>
+                  <label style={lbl}>Valor do saldo pendente (R$)</label>
+                  <input style={{ ...inp, borderColor: C.warnBo, boxShadow: `0 0 0 1px ${C.warnBo}` }}
+                    placeholder="Ex: 97,00" type="number" step="0.01" min="0"
+                    value={form.pendingValue}
+                    onChange={e => setForm(f => ({ ...f, pendingValue: e.target.value }))} />
+                </div>
+              )}
               <div>
                 <label style={lbl}>Data do cadastro</label>
                 <input type="date" style={inp} value={form.registrationDate} onChange={e => setForm(f => ({ ...f, registrationDate: e.target.value }))} />
